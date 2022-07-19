@@ -1,6 +1,16 @@
 import { createApp } from 'vue'
 import App from './App.vue'
-import router from './router'
-import store from './store'
+import myComponents from '@/components/UI/index'
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
-createApp(App).use(store).use(router).mount('#app')
+import { myIcons } from '@/components/UI/index'
+
+const app = createApp(App)
+
+myComponents.forEach((component) => {
+  app.component(component.name, component)
+})
+myIcons.forEach((icon) => library.add(icon))
+
+app.component('font-awesome-icon', FontAwesomeIcon).mount('#app')
