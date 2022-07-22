@@ -13,6 +13,8 @@ import { faCircleCheck } from '@fortawesome/free-regular-svg-icons'
 import { faCircleDot } from '@fortawesome/free-regular-svg-icons'
 import { faTrashCan } from '@fortawesome/free-regular-svg-icons'
 import { faPenToSquare } from '@fortawesome/free-regular-svg-icons'
+import { faFloppyDisk } from '@fortawesome/free-solid-svg-icons'
+import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 
 const myComponents = [MyButton, MyInput]
 
@@ -29,6 +31,8 @@ export const myIcons = [
   faCircleDot,
   faTrashCan,
   faPenToSquare,
+  faFloppyDisk,
+  faMagnifyingGlass,
 ]
 
 export default myComponents

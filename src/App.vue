@@ -5,28 +5,24 @@
     </div>
     <Sidebar :class="['sidebar', { sidebar_open: isSidebar }]" />
     <Clock />
-    <Search class="search" />
+    <Search class="search" @searched="searched" />
     <TaskList
       class="tasklist"
-      :tasks="tasks"
+      :tasks="searchedTasks"
+      :avaliableStatuses="avaliableStatuses"
       @changeStatus="changeStatus"
       @removeTask="removeTask"
-      @editTask="editTask"
+      @edited="editTask"
+      @newTaskCreated="addTask"
     />
     <Calendar class="calendar" />
     <Projects class="projects" />
     <Schedule class="schedule" />
-    <TaskForm
-      v-if="isShowForm"
-      :editedTask="editedTask"
-      :avaliableStatuses="avaliableStatuses"
-      @taskSaved="savedHandler"
-    />
   </div>
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import TaskList from '@/components/TaskList.vue'
 import TaskForm from '@/components/TaskForm.vue'
 import Sidebar from '@/components/Sidebar.vue'
@@ -48,43 +44,21 @@ export default {
     Clock,
   },
   setup() {
-    const data = [
-      { id: 1, text: 'Learn TypeScript', status: 'todo' },
-      { id: 2, text: 'Learn Vue 3', status: 'in progress' },
-      { id: 3, text: 'Make my own todo', status: 'finished' },
-    ]
     const avaliableStatuses = ['todo', 'in progress', 'finished']
-    const tasks = ref(data)
-    const editedTask = ref(null)
+    const tasks = ref([])
+    const query = ref('')
     const isSidebar = ref(true)
-    const isShowForm = ref(false)
 
-    const showFormToggle = () => (isShowForm.value = !isShowForm.value)
     const sidebarToggle = () => (isSidebar.value = !isSidebar.value)
 
-    const addTask = () => {
-      tasks.value.push({ id: 4, text: 'new', status: 'todo' })
+    const addTask = (newTask) => {
+      tasks.value.push(newTask)
+      localStorage.setItem('vue-todo', JSON.stringify(tasks.value))
     }
 
-    const removeTask = (id) =>
-      (tasks.value = tasks.value.filter((item) => item.id !== id))
-
-    const editTask = (id) => {
-      const currentTask = tasks.value.find((item) => item.id === id)
-      editedTask.value = currentTask
-      console.log(currentTask)
-      console.log(editedTask.value)
-      isShowForm.value = true
-    }
-
-    const savedHandler = (savedTask) => {
-      showFormToggle()
-      console.log(savedTask);
-      // tasks.value = tasks.value.map((item) => {
-      //   if (item.id === savedTask.id) {
-      //     item = savedTask
-      //   }
-      // })
+    const removeTask = (id) => {
+      tasks.value = tasks.value.filter((item) => item.id !== id)
+      localStorage.setItem('vue-todo', JSON.stringify(tasks.value))
     }
 
     const changeStatus = (id) => {
@@ -103,21 +77,44 @@ export default {
           return { ...item, status: nextStatus }
         } else return item
       })
+      localStorage.setItem('vue-todo', JSON.stringify(tasks.value))
     }
 
+    const editTask = (payload) => {
+      tasks.value = tasks.value.map((item) => {
+        if (item.id === payload.id) {
+          return { ...item, text: payload.text }
+        } else return item
+      })
+      localStorage.setItem('vue-todo', JSON.stringify(tasks.value))
+    }
+
+    const searched = (text) => {
+      query.value = text
+    }
+
+    const searchedTasks = computed(() => {
+      return tasks.value.filter((item) => item.text.toLowerCase().includes(query.value))
+    })
+
+    onMounted(() => {
+      if (localStorage.getItem('vue-todo')) {
+        let fetchedTasks = JSON.parse(localStorage.getItem('vue-todo'))
+        tasks.value = fetchedTasks
+      }
+    })
+
     return {
-      tasks,
-      addTask,
       isSidebar,
-      sidebarToggle,
-      changeStatus,
-      removeTask,
-      isShowForm,
-      showFormToggle,
-      editTask,
-      editedTask,
+      tasks,
       avaliableStatuses,
-      savedHandler,
+      sidebarToggle,
+      addTask,
+      removeTask,
+      changeStatus,
+      editTask,
+      searched,
+      searchedTasks,
     }
   },
 }
@@ -150,7 +147,6 @@ export default {
   }
   .search {
     grid-area: search;
-    background-color: grey;
   }
   .tasklist {
     grid-area: tasklist;
@@ -158,7 +154,7 @@ export default {
   }
   .calendar {
     grid-area: calendar;
-    background-color: rgba($color: yellow, $alpha: 0.5);
+    background-color: #2f2f2f;
   }
   .projects {
     grid-area: projects;

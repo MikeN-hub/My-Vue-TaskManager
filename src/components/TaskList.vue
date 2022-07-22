@@ -2,7 +2,7 @@
   <div class="taskList">
     <div class="header">
       <div class="title">My tasks</div>
-      <MyButton class="createTask-btn">+ Create new</MyButton>
+      <MyButton class="createTask-btn" @click="openForm">+ Create new</MyButton>
     </div>
     <TaskItem
       :task="task"
@@ -10,24 +10,43 @@
       :key="task.id"
       @changeStatus="$emit('changeStatus', $event)"
       @removeTask="$emit('removeTask', $event)"
-      @editTask="$emit('editTask', $event)"
+      @edited="$emit('edited', $event)"
+    />
+    <TaskForm
+      v-if="isShowForm"
+      :avaliableStatuses="avaliableStatuses"
+      @newTaskCreated="newTaskCreated"
     />
   </div>
 </template>
 
 <script>
+import { ref } from 'vue'
 import TaskItem from './TaskItem.vue'
+import TaskForm from './TaskForm.vue'
 
 export default {
-  components: { TaskItem },
+  components: { TaskItem, TaskForm },
   props: {
     tasks: {
       type: Array,
       required: true,
     },
+    avaliableStatuses: {
+      type: Array,
+      requred: true,
+    },
   },
   setup(props, context) {
-    return {}
+    const isShowForm = ref(false)
+
+    const openForm = () => (isShowForm.value = true)
+
+    const newTaskCreated = (newTask) => {
+      context.emit('newTaskCreated', newTask)
+      isShowForm.value = false
+    }
+    return { isShowForm, openForm, newTaskCreated }
   },
 }
 </script>

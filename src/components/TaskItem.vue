@@ -1,15 +1,19 @@
 <template>
   <div class="task">
-    <font-awesome-icon :icon="iconVariant" />
-    <p :class="['task__text', textVariant]">{{ task.text }}</p>
+    <font-awesome-icon :icon="iconStatusVariant" />
+    <input type="text" class="task__text" v-if="isEditing" v-model="newText" />
+    <p :class="['task__text', textVariant]" v-else>{{ task.text }}</p>
     <p
       :class="['task__status', statusVariant]"
-      @click="changeStatus"
+      @click="$emit('changeStatus', task.id)"
     >
       {{ task.status }}
     </p>
-    <font-awesome-icon icon="fa-regular fa-pen-to-square" @click="$emit('editTask', task.id)"/>
-    <font-awesome-icon icon="fa-regular fa-trash-can" @click="$emit('removeTask', task.id)"/>
+    <font-awesome-icon :icon="IconEditVariant" @click="editTask" />
+    <font-awesome-icon
+      icon="fa-regular fa-trash-can"
+      @click="$emit('removeTask', task.id)"
+    />
   </div>
 </template>
 
@@ -23,7 +27,7 @@ export default {
     },
   },
   setup(props, context) {
-    const iconVariant = computed(() => {
+    const iconStatusVariant = computed(() => {
       switch (props.task.status) {
         case 'todo':
           return 'fa-regular fa-circle'
@@ -38,9 +42,9 @@ export default {
           break
       }
     })
-    const textVariant = computed(() => {
-      return props.task.status === 'finished' ? 'lineThrough' : ''
-    })
+    const textVariant = computed(() =>
+      props.task.status === 'finished' ? 'lineThrough' : ''
+    )
     const statusVariant = computed(() => {
       switch (props.task.status) {
         case 'todo':
@@ -56,10 +60,36 @@ export default {
           break
       }
     })
-    const changeStatus = () => {
-      context.emit('changeStatus', props.task.id)
+    const IconEditVariant = computed(() => {
+      return isEditing.value
+        ? 'fa-solid fa-floppy-disk'
+        : 'fa-regular fa-pen-to-square'
+    })
+
+    const isEditing = ref(false)
+    const taskRef = ref(props.task)
+    const newText = ref(props.task.text)
+    const editTask = () => {
+      isEditing.value = !isEditing.value
+      if (newText.value) {
+        taskRef.value.text = newText.value
+        context.emit('edited', taskRef)
+      } else {
+        alert('text field cannot be empy')
+        isEditing.value = !isEditing.value
+      }
     }
-    return { iconVariant, textVariant, statusVariant, changeStatus }
+
+    return {
+      iconStatusVariant,
+      textVariant,
+      statusVariant,
+      IconEditVariant,
+      isEditing,
+      taskRef,
+      editTask,
+      newText,
+    }
   },
 }
 </script>

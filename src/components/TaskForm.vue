@@ -3,13 +3,13 @@
     <form class="box" @submit.prevent>
       <MyInput class="input-task" v-model="inputText" />
       <div class="selectEl">
-        <select v-model="selected">
+        <select v-model="selectedStatus">
           <option disabled value="">Выберите один из вариантов</option>
           <option v-for="status in avaliableStatuses" :value="status">
             {{ status }}
           </option>
         </select>
-        <span>Выбрано: {{ selected }}</span>
+        <span>Выбрано: {{ selectedStatus }}</span>
       </div>
 
       <MyButton class="submit-btn" type="submit" @click="saveTask"
@@ -25,29 +25,27 @@ import MyInput from './UI/MyInput.vue'
 
 export default {
   props: {
-    editedTask: {
-      type: Object,
-    },
     avaliableStatuses: {
       type: Array,
+      required: true
     },
   },
   setup(props, context) {
-    const inputText = ref(props.editedTask.text)
-    const selected = ref('')
-    let task
+    const inputText = ref('')
+    const selectedStatus = ref('')
+
     const saveTask = () => {
-      if (props.editedTask) {
-        task = {
-          ...props.editedTask,
-          text: inputText,
-          status: selected.value,
+      if (inputText) {
+        const newTask = {
+          id: Date.now(),
+          text: inputText.value,
+          status: selectedStatus.value,
         }
-        context.emit('taskSaved', task)
+        context.emit('newTaskCreated', newTask)
       }
-      console.log(task)
     }
-    return { inputText, selected, saveTask }
+
+    return { inputText, selectedStatus, saveTask }
   },
   components: { MyInput },
 }
